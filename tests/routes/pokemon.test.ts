@@ -73,6 +73,7 @@ describe('GET /pokemon', () => {
     // Tests to take a bit of time to prepare though.
     knex = await initDb('./data/test.sqlite3', true, true);
     app = await startServer({
+      host: 'localhost',
       port: 8512
     });
   }, 10000);

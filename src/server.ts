@@ -11,7 +11,13 @@ let fastify: FastifyInstance | null = null;
 
 export const getInstance = () => fastify;
 
-export async function start({ port, host }: { host: string; port: number }): Promise<FastifyInstance> {
+export async function start({
+  port,
+  host
+}: {
+  host: string;
+  port: number;
+}): Promise<FastifyInstance> {
   try {
     fastify = Fastify({
       ajv: {
@@ -26,14 +32,12 @@ export async function start({ port, host }: { host: string; port: number }): Pro
     fastify.setErrorHandler((error: FastifyError, request, reply) => {
       console.error(error);
       if (error.validation) {
-        reply
-          .status(400)
-          .send({
-            status: 400,
-            message: 'Validation error',
-            validation: error.validation,
-            validationContext: error.validationContext
-          });
+        reply.status(400).send({
+          status: 400,
+          message: 'Validation error',
+          validation: error.validation,
+          validationContext: error.validationContext
+        });
         return;
       }
       reply.status(500).send({ message: 'Internal server error' });
@@ -42,7 +46,8 @@ export async function start({ port, host }: { host: string; port: number }): Pro
     // TODO: Implement real healthcheck route.
     // Check if the database is connected and if the webserver is running.
     fastify.get('/healthcheck', async () => {
-      const status = await fastify?.ready() && (dbInstance() as Knex).raw('SELECT 1');
+      const status =
+        (await fastify?.ready()) && (dbInstance() as Knex).raw('SELECT 1');
       return { status };
     });
 
@@ -78,7 +83,7 @@ export async function start({ port, host }: { host: string; port: number }): Pro
       routeParams: true
     });
 
-    const response = await fastify.listen({ host, port });
+    await fastify.listen({ host, port });
     // console.log('Server listening on', response);
     return fastify;
   } catch (err) {

@@ -10,15 +10,15 @@ export interface Pokemon {
   height: string;
   weight: string;
   candy: string;
-  candyCount: number;
+  candyCount: number | null;
   egg: string;
   spawnChance: number;
   avgSpawns: number;
   spawnTime: string;
-  multipliers: number[];
+  multipliers: number[] | null;
   weaknesses: string[];
-  prevEvolution: Evolution[];
-  nextEvolution: Evolution[];
+  prevEvolution: Evolution[] | null;
+  nextEvolution: Evolution[] | null;
 }
 export interface Evolution {
   num: string;
@@ -26,7 +26,7 @@ export interface Evolution {
 }
 
 export const PokemonDbToPokemon = (p: PokemonDb): Pokemon => ({
-  id: p.id,
+  id: p.id ?? 0,
   pokedexNumber: p.num,
   name: p.name,
   img: p.img,
@@ -45,8 +45,28 @@ export const PokemonDbToPokemon = (p: PokemonDb): Pokemon => ({
   multipliers: JSON.parse(p.multipliers)
 });
 
+export const PokemonToPokemonDb = (pokemon: Pokemon): PokemonDb => ({
+  ...(pokemon.id ? { id: pokemon.id } : {}), // Only include id if it exists
+  num: pokemon.pokedexNumber,
+  name: pokemon.name,
+  img: pokemon.img,
+  type: JSON.stringify(pokemon.type),
+  height: Number(pokemon.height.split(' ')[0]),
+  weight: Number(pokemon.weight.split(' ')[0]),
+  candy: pokemon.candy,
+  candy_count: Number(pokemon.candyCount),
+  egg: Number(pokemon.egg.split(' ')[0]),
+  spawn_chance: pokemon.spawnChance,
+  avg_spawns: pokemon.avgSpawns,
+  spawn_time: pokemon.spawnTime,
+  multipliers: JSON.stringify(pokemon.multipliers),
+  weaknesses: JSON.stringify(pokemon.weaknesses),
+  prev_evolution: JSON.stringify(pokemon.prevEvolution),
+  next_evolution: JSON.stringify(pokemon.nextEvolution)
+});
+
 interface PokemonDb {
-  id: number;
+  id?: number;
   // Opted for not making the num the actual db ID,
   // as the pokedex might have different pokedex numbers in different games.
   num: string;
@@ -129,8 +149,11 @@ export async function getPokemons(
       }))
     );
   }
-  const stored = (await query).map(PokemonDbToPokemon);
-  return stored;
+
+  const stored = await query;
+
+  const mapped = stored.map(PokemonDbToPokemon);
+  return mapped;
 }
 
 /**
@@ -142,7 +165,7 @@ export async function getPokemons(
  */
 export async function getWeakPokemon(id: number): Promise<Pokemon[]> {
   const knex = await (instance() as Knex);
-  console.log(id);
+
   const stored: Pokemon = PokemonDbToPokemon(
     await knex.select('*').from('pokemon').where('id', id).first()
   );
@@ -159,7 +182,7 @@ export async function getWeakPokemon(id: number): Promise<Pokemon[]> {
       return `weaknesses LIKE ?`;
     })
     .join(' OR ');
-  const query = knex
+  const query = await knex
     .select('*')
     .from('pokemon')
     .whereRaw(
@@ -168,13 +191,7 @@ export async function getWeakPokemon(id: number): Promise<Pokemon[]> {
         (${weaknesses})`,
       params
     );
-  console.log(
-    `(${notTypes}) 
-    AND 
-    (${weaknesses})`,
-    params
-  );
-  return (await query).map(PokemonDbToPokemon);
+  return query.map(PokemonDbToPokemon);
 }
 
 /**
@@ -189,6 +206,7 @@ export async function getPokemonById(
   includeEvolutions = true
 ): Promise<Pokemon[] | null> {
   const knex = await (instance() as Knex);
+
   const stored: Pokemon = PokemonDbToPokemon(
     await knex.select('*').from('pokemon').where('id', id).first()
   );
@@ -228,9 +246,9 @@ export async function addPokemonEvolutions(
     .from('pokemon')
     .where('num', pokedexNumber)
     .first();
-  console.log(dbPokemon);
+
   const pokemon = PokemonDbToPokemon(dbPokemon);
-  console.log(pokemon);
+
   const update: { next_evolution: Evolution[]; prev_evolution: Evolution[] } = {
     next_evolution: pokemon.nextEvolution ?? [],
     prev_evolution: pokemon.prevEvolution ?? []
@@ -267,24 +285,7 @@ export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
   const knex = await (instance() as Knex);
   const prevEvolution = pokemon.prevEvolution;
   const nextEvolution = pokemon.nextEvolution;
-  const createPokemon = {
-    num: pokemon.pokedexNumber,
-    name: pokemon.name,
-    img: pokemon.img,
-    type: JSON.stringify(pokemon.type),
-    height: Number(pokemon.height.split(' ')[0]),
-    weight: Number(pokemon.weight.split(' ')[0]),
-    candy: pokemon.candy,
-    candy_count: pokemon.candyCount,
-    egg: Number(pokemon.egg.split(' ')[0]),
-    spawn_chance: pokemon.spawnChance,
-    avg_spawns: pokemon.avgSpawns,
-    spawn_time: pokemon.spawnTime,
-    multipliers: JSON.stringify(pokemon.multipliers),
-    weaknesses: JSON.stringify(pokemon.weaknesses),
-    prev_evolution: JSON.stringify(pokemon.prevEvolution),
-    next_evolution: JSON.stringify(pokemon.nextEvolution)
-  };
+  const createPokemon: PokemonDb = PokemonToPokemonDb(pokemon);
   const [id] = await knex('pokemon').insert(createPokemon);
   const evolution: Evolution = {
     num: createPokemon.num,
@@ -296,7 +297,7 @@ export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
   // So, if one of the previous evolutions does not contain all of the previous evolutions
 
   // EDIT: This should now work. check has been added.
-  if (prevEvolution.length > 0) {
+  if (Array.isArray(prevEvolution) && prevEvolution.length > 0) {
     for (let i = 0; i < prevEvolution.length; i++) {
       const pEvolution = prevEvolution[i];
       const prevEvPokemon: Pokemon = PokemonDbToPokemon(
@@ -306,15 +307,17 @@ export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
           .where('num', pEvolution.num)
           .first()
       );
-      prevEvPokemon.prevEvolution.forEach((element) => {
-        if (!prevEvolution.find((e) => e.num === element.num)) {
-          prevEvolution.push(element);
-        }
-      });
+      if (Array.isArray(prevEvPokemon.prevEvolution)) {
+        prevEvPokemon.prevEvolution.forEach((element) => {
+          if (!prevEvolution.find((e) => e.num === element.num)) {
+            prevEvolution.push(element);
+          }
+        });
+      }
       await addPokemonEvolutions(pEvolution.num, [], [evolution]);
     }
   }
-  if (nextEvolution.length > 0) {
+  if (Array.isArray(nextEvolution) && nextEvolution.length > 0) {
     for (let i = 0; i < nextEvolution.length; i++) {
       const nEvolution = nextEvolution[i];
       const nextEvPokemon: Pokemon = PokemonDbToPokemon(
@@ -324,15 +327,14 @@ export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
           .where('num', nEvolution.num)
           .first()
       );
-      nextEvPokemon.prevEvolution.forEach((element) => {
-        if (!prevEvolution.find((e) => e.num === element.num)) {
-          prevEvolution.push(element);
-        }
-      });
+      if (Array.isArray(nextEvPokemon.nextEvolution)) {
+        nextEvPokemon.nextEvolution.forEach((element) => {
+          if (!nextEvolution.find((e) => e.num === element.num)) {
+            nextEvolution.push(element);
+          }
+        });
+      }
       await addPokemonEvolutions(nEvolution.num, [], [evolution]);
-    }
-    for (const nEvolution of nextEvolution) {
-      await addPokemonEvolutions(nEvolution.num, [evolution], []);
     }
   }
   return { ...pokemon, id };

@@ -6,72 +6,17 @@ import { Knex } from 'knex';
 import suggested from '../../data/mock/suggested.json';
 import grassPokemonSortedByWeightAsc from '../../data/mock/grass-pokemon-sorted-by-weight-asc.json';
 import mockBulbasaur from '../../data/mock/bulbasaur.json';
-const mockIvysaur = {
-  id: 2,
-  pokedexNumber: '002',
-  name: 'Ivysaur',
-  img: 'http://www.serebii.net/pokemongo/pokemon/002.png',
-  type: ['Grass', 'Poison'],
-  height: '0.99 m',
-  weight: '13 kg',
-  candy: 'Bulbasaur Candy',
-  candyCount: 100,
-  egg: 'Not in Eggs',
-  spawnChance: 0.042,
-  avgSpawns: 4.2,
-  spawnTime: '07:00',
-  multipliers: [1.2, 1.6],
-  weaknesses: ['Fire', 'Ice', 'Flying', 'Psychic'],
-  prevEvolution: [
-    {
-      num: '001',
-      name: 'Bulbasaur'
-    }
-  ],
-  nextEvolution: [
-    {
-      num: '003',
-      name: 'Venusaur'
-    }
-  ]
-};
-const mockVenusaur = {
-  id: 3,
-  pokedexNumber: '003',
-  name: 'Venusaur',
-  img: 'http://www.serebii.net/pokemongo/pokemon/003.png',
-  type: ['Grass', 'Poison'],
-  height: '2.01 m',
-  weight: '100 kg',
-  candy: 'Bulbasaur Candy',
-  candyCount: null,
-  egg: 'Not in Eggs',
-  spawnChance: 0.017,
-  avgSpawns: 1.7,
-  spawnTime: '11:30',
-  multipliers: null,
-  weaknesses: ['Fire', 'Ice', 'Flying', 'Psychic'],
-  prevEvolution: [
-    {
-      num: '001',
-      name: 'Bulbasaur'
-    },
-    {
-      num: '002',
-      name: 'Ivysaur'
-    }
-  ],
-  nextEvolution: null
-};
+import mockVenusaur from '../../data/mock/venusaur.json';
+import mockIvysaur from '../../data/mock/ivysaur.json';
 const mockPokemon = [mockBulbasaur, mockIvysaur, mockVenusaur];
 
-describe('GET /pokemon', () => {
+describe('Pokemon routes', () => {
   let app: FastifyInstance;
   let knex: Knex;
   beforeAll(async () => {
     // TODO: Should maybe decrease the size of the test db, but for now this is fine.
     // Tests to take a bit of time to prepare though.
-    knex = await initDb('./data/test.sqlite3', true, true);
+    knex = await initDb(':memory:', true, true);
     app = await startServer({
       host: 'localhost',
       port: 8512
@@ -145,5 +90,39 @@ describe('GET /pokemon', () => {
     expect(response.statusCode).toBe(200);
     const json = await response.json();
     expect(json).toEqual(suggested);
+  });
+  it('POST /pokemon - should create a new pokemon', async () => {
+    const mockCreate = {
+      name: 'saursaur',
+      pokedexNumber: '152',
+      img: 'test',
+      type: ['Test'],
+      height: '1 m',
+      weight: '1 kg',
+      candy: 'Test Candy',
+      candyCount: 1,
+      egg: 'Test Egg',
+      spawnChance: 0.1,
+      avgSpawns: 1,
+      spawnTime: '12:00',
+      weaknesses: ['Test'],
+      multipliers: [1],
+      prevEvolution: [{ num: '001', name: 'Bulbasaur' }],
+      nextEvolution: [{ num: '003', name: 'Venusaur' }]
+    };
+    const createPokemon = await app.inject({
+      method: 'POST',
+      url: '/pokemon',
+      payload: mockCreate
+    });
+    expect(createPokemon.statusCode).toBe(200);
+    const json = await createPokemon.json();
+    expect(json).toEqual({ id: 152, ...mockCreate });
+    const pkmnResponse = await app.inject({
+      method: 'GET',
+      url: '/pokemon?name=saur'
+    });
+    const createdPokemons = pkmnResponse.json();
+    expect(createdPokemons).toHaveLength(4);
   });
 });

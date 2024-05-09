@@ -18,22 +18,6 @@ The project has the following directory structure
 
 ```
 
-### Decisions
-
-I picked `Fastify` as a webframework because it's fast and has a nice eco-system, comparable to Express.
-It has built in requestvalidation using AJV, and because I'm using `@fastify/swagger`, I'm also able to generate the swagger specifications to use in the `swagger-ui` client shipped with the module.
-I use this inconjunction with a library I have built earlier, `ts-interface-to-json-schema`, to automaticly generate the schema from the typescript types using `ts-morph`, so I can simpy define one structure and be done with it, although defining the structure isn't too bad anyway.
-This custom-made library is likely not something I would run in production at this point in time to be clear, but thought I would include it for fun!
-
-I'm using an `@fastify/autoload` to automatically load the routes from the src/routes directory where the directory structure corresponds to the actual API URL, making it simple to browse the code.
-
-I picked `Knex.js` for database management as it's compatible with multiple databases, has migrations, and you don't have to work as ORM'y(even though there is some support in there for it).
-Here I opted for defining the types in Typescript and then just fetching the data with queries.
-
-I used `SQLite` as a database to make it as simple as possible to setup and run on any environment, making the initial time investment cost almost non-existent. This could be quite easily swapped out for another DB driver with some minor alterations.
-
-The codebases formatting is controlled by `prettier` and `eslint`
-
 ## Getting started local developing
 
 You have two options when it comes to local development, either you can use `docker compose up` and service should start on its own, or you can simply opt to run everthing locally since no additional services are required to run it.
@@ -49,3 +33,19 @@ Once that is done, you can either
   Navigate to http://localhost:8080/documentation to use the built-in swagger-ui client.
   or
 - `npm run test`
+
+## Decisions
+
+I picked `Fastify` as a webframework because it's fast and has a nice eco-system, comparable to Express.
+It has built in requestvalidation using AJV, and because I'm using `@fastify/swagger`, I'm also able to generate the swagger specifications to use in the `swagger-ui` client shipped with the module.
+I use this inconjunction with a library I have built earlier, `ts-interface-to-json-schema`, to automaticly generate the schema from the typescript types using `ts-morph`, so I can simpy define one structure and be done with it, although defining the structure isn't too bad anyway.
+This custom-made library is likely not something I would run in production at this point in time to be clear, but thought I would include it for fun!
+
+I'm using an `@fastify/autoload` to automatically load the routes from the src/routes directory where the directory structure corresponds to the actual API URL, making it simple to browse the code.
+
+I picked `Knex.js` for database management as it's compatible with multiple databases, has migrations, and you don't have to work as ORM'y(even though there is some support in there for it).
+Here I opted for defining the types in Typescript and then just fetching the data with queries.
+
+I used `SQLite` as a database to make it as simple as possible to setup and run on any environment, making the initial time investment cost almost non-existent. This could be quite easily swapped out for another DB driver with some minor alterations.
+
+The codebases formatting is controlled by `prettier` and `eslint`, and I'm using precommit hooks with `Husky` to ensure the code is always formatted correctly before being pushed

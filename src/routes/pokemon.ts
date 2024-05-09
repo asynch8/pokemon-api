@@ -74,7 +74,6 @@ export default function (
       }
     },
     async (request: FastifyRequestGet) => {
-      console.log(request.query);
       const filters = {
         name: request.query.name ? request.query.name[0].split(',') : [],
         type: request.query.type ? request.query.type[0].split(',') : []
@@ -87,7 +86,8 @@ export default function (
           ? request.query.sortDirection
           : 'asc'
       };
-      return await getPokemons(filters, sorting);
+      const pokemons = await getPokemons(filters, sorting);
+      return pokemons;
     }
   );
   f.post(
@@ -98,9 +98,7 @@ export default function (
       }
     },
     async (request: FastifyRequestPost) => {
-      console.log({ body: request.body });
       const pokemon = await createPokemon(request.body);
-      console.log(request.body);
       return pokemon;
     }
   );

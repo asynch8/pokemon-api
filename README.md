@@ -8,11 +8,15 @@ It has the following directory structure
 
 - data - Contains data, like the initial JSON, the sqlite database and mocks used for the tests.
 - db - Contains DB
+
   | \-- migrations - Contains the database schema through the migrations
   | \-- seeds - Contains a small function to read and map the pokemon.json into the migrations
+
 - src - The codebase
+
   | \- routes - Where the routes live  
   | \- clients - Modules that get information from places, for example a database
+
 - tests - Tests
 
 I picked Fastify as a webframework because it's fast and has a nice eco-system, comparable to Express.

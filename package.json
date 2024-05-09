@@ -30,7 +30,7 @@
     "fastify": "^4.26.2",
     "knex": "^3.1.0",
     "sqlite3": "^5.1.7",
-    "ts-interface-to-json-schema": "github:asynch8/ts-interface-to-json"
+    "ts-interface-to-json-schema": "github:asynch8/ts-interface-to-json#b3f7a55f15312208146d79a1d2ea762eef9eaaf2"
   },
   "devDependencies": {
     "@eslint/js": "^9.2.0",

@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import Fastify, { FastifyError, FastifyInstance } from 'fastify';
 import autoLoad from '@fastify/autoload';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
@@ -21,10 +21,20 @@ export async function start({ port }: { port: number } = { port: 8080 }) {
       }
     });
 
-    fastify.setErrorHandler((error, request, reply) => {
+    fastify.setErrorHandler((error: FastifyError, request, reply) => {
       console.error(error);
-
-      reply.status(500).send({ ok: false });
+      if (error.validation) {
+        reply
+          .status(400)
+          .send({
+            status: 400,
+            message: 'Validation error',
+            validation: error.validation,
+            validationContext: error.validationContext
+          });
+        return;
+      }
+      reply.status(500).send({ message: 'Internal server error' });
     });
 
     // TODO: Implement real healthcheck route.

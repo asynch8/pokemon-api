@@ -111,5 +111,5 @@
     "outDir": "./dist"
   },
   "include": ["**/*.ts", "node_modules/ts-interface-to-json-schema/types.d.ts"],
-  "exclude": []
+  "exclude": ["node_modules"]
 }

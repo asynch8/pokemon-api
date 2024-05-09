@@ -114,8 +114,7 @@ describe('GET /pokemon', () => {
       method: 'GET',
       url: '/pokemon?name=sa'
     });
-    expect(response.statusCode).not.toBe(200);
-    console.log('response', response.statusCode);
+    expect(response.statusCode).toBe(400);
   });
   it('GET /pokemon?name=saur - should return pokemon filtered by name', async () => {
     const response = await app.inject({

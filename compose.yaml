@@ -2,10 +2,12 @@ services:
   web:
     build: .
     volumes:
-      - ./src:/app/src/
+      - ./src:/app/src
     ports:
       - '${PORT-8080}:${PORT-8080}'
     environment:
       - SEED=true
       - MIGRATE=true
-    command: npm run start
+      - PORT=${PORT-8080}
+      - HOST=${HOST-0.0.0.0}
+    command: npm run dev

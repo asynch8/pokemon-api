@@ -1,7 +1,9 @@
 import Fastify, { FastifyError, FastifyInstance } from 'fastify';
+import { Knex } from 'knex';
 import autoLoad from '@fastify/autoload';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import { instance as dbInstance } from './db';
 // import fastifyCors from '@fastify/cors';
 import { join } from 'path';
 
@@ -9,7 +11,7 @@ let fastify: FastifyInstance | null = null;
 
 export const getInstance = () => fastify;
 
-export async function start({ port }: { port: number } = { port: 8080 }) {
+export async function start({ port, host }: { host: string; port: number }): Promise<FastifyInstance> {
   try {
     fastify = Fastify({
       ajv: {
@@ -40,7 +42,8 @@ export async function start({ port }: { port: number } = { port: 8080 }) {
     // TODO: Implement real healthcheck route.
     // Check if the database is connected and if the webserver is running.
     fastify.get('/healthcheck', async () => {
-      return '{ "status": "ok" }';
+      const status = await fastify?.ready() && (dbInstance() as Knex).raw('SELECT 1');
+      return { status };
     });
 
     // Enable support for swagger.json
@@ -75,7 +78,8 @@ export async function start({ port }: { port: number } = { port: 8080 }) {
       routeParams: true
     });
 
-    await fastify.listen({ port });
+    const response = await fastify.listen({ host, port });
+    // console.log('Server listening on', response);
     return fastify;
   } catch (err) {
     console.error(err);

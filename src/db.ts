@@ -41,4 +41,4 @@ export async function init(
   return knex;
 }
 
-export const instance = () => knex;
+export const instance = (): Knex.Knex | null => knex;

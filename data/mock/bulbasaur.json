@@ -1,0 +1,28 @@
+{
+    "id": 1,
+    "pokedexNumber": "001",
+    "name": "Bulbasaur",
+    "img": "http://www.serebii.net/pokemongo/pokemon/001.png",
+    "type": ["Grass", "Poison"],
+    "height": "0.71 m",
+    "weight": "6.9 kg",
+    "candy": "Bulbasaur Candy",
+    "candyCount": 25,
+    "egg": "2 km",
+    "spawnChance": 0.69,
+    "avgSpawns": 69,
+    "spawnTime": "20:00",
+    "multipliers": [1.58],
+    "weaknesses": ["Fire", "Ice", "Flying", "Psychic"],
+    "prevEvolution": null,
+    "nextEvolution": [
+        {
+            "num": "002",
+            "name": "Ivysaur"
+        },
+        {
+            "num": "003",
+            "name": "Venusaur"
+        }
+    ]
+}

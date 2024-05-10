@@ -291,12 +291,9 @@ export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
     num: createPokemon.num,
     name: createPokemon.name
   };
-  // TODO: This logic should technically be rewritten
-  // Right now, I think this code should work, but if the user starts making wacky
-  // evolution journeys, then it might not fit the requirement.
-  // So, if one of the previous evolutions does not contain all of the previous evolutions
 
-  // EDIT: This should now work. check has been added.
+  // Loop through the evolutions provided, and get their evolutions appending them to the prevEvolution or nextEvolution array.
+  // TODO: Add the sub-evolutions in the create pokemon as well in case any are missed
   if (Array.isArray(prevEvolution) && prevEvolution.length > 0) {
     for (let i = 0; i < prevEvolution.length; i++) {
       const pEvolution = prevEvolution[i];

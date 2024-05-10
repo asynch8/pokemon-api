@@ -40,7 +40,7 @@ or
 ## Tech Decisions
 
 I picked `Fastify` as a webframework because it's fast and has a nice eco-system, comparable to Express.
-It has built in requestvalidation using AJV, and because I'm using `@fastify/swagger`, I'm also able to generate the swagger specifications to use in the `swagger-ui` client shipped with the module.
+It has built in requestvalidation using AJV, and because I'm using `@fastify/swagger`, I'm also able to generate the swagger specifications to use in the `swagger-ui` client shipped with the service.
 
 I use this inconjunction with a library I have built earlier, `ts-interface-to-json-schema`, to automaticly generate the schema from the typescript types using `ts-morph`, so I can simpy define one structure and be done with it, although defining the structure isn't too bad anyway.
 This custom-made library is likely not something I would run in production at this point in time to be clear, but thought I would include it for fun!

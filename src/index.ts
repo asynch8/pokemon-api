@@ -6,7 +6,5 @@ export const start = async () => {
   console.log('Database is ready');
   const server = await startServer({ port: config.port, host: config.host });
   console.log('Server is ready, listening on', server.addresses());
-  // console.log(server)
-  //console.log('Server is ready', { host: server.address().address, port: server.address().port});
 };
 start();

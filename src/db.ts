@@ -18,20 +18,18 @@ export async function init(
   const exists = await knex.schema.hasTable('pokemon');
   if (!exists) {
     if (!runMigrations) {
-      console.log('Run migrations first.');
+      console.error('Run migrations first.');
       process.exit(1);
     }
-    console.log('Running migrations');
+    console.debug('Running migrations');
     await up(knex as Knex.Knex);
   }
   const pokemon = await (knex as Knex.Knex)('pokemon').first();
   if (!pokemon) {
     if (runSeeds) {
-      console.log('Running seeds');
+      console.debug('Running seeds');
       await seed(knex as Knex.Knex);
     } else {
-      // Initially the functionality was set to exit if nothing was in the db, but it could be good for testing
-      // to just get an entirely fresh db.
       console.log(
         "Pokemon database seems to be empty. This could be an indication you're doing something wrong, or that you haven't ran npm run seeds yet"
       );

@@ -110,13 +110,8 @@ export async function getPokemons(
   const knex = await (instance() as Knex);
   const query = knex.select('*').from('pokemon');
   if (filter) {
-    if (filter.id) {
-      if (!Array.isArray(filter.id)) {
-        // probably best to simply remove this
-        query.where('id', filter.id);
-      } else {
-        query.whereIn('id', filter.id);
-      }
+    if (filter.id && Array.isArray(filter.id)) {
+      query.whereIn('id', filter.id);
     }
     if (filter.type) {
       if (Array.isArray(filter.type)) {
@@ -151,9 +146,7 @@ export async function getPokemons(
   }
 
   const stored = await query;
-
-  const mapped = stored.map(PokemonDbToPokemon);
-  return mapped;
+  return stored.map(PokemonDbToPokemon);
 }
 
 /**
@@ -231,7 +224,7 @@ export async function getPokemonById(
   return [
     stored,
     ...evolutions // I had two approaches in mind for including it in the return data.
-    // Either I replace the properties with the actual pokemon data
+    // Either I replace the nextEvolution/prevEvolution properties with the actual Pokemon object
     // or I keep it as is and return the pokemon in an array.
     // I opted for the latter approach as then I won't have to change the Pokemon type specifically for this function.
   ];

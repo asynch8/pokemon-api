@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 import { getWeakPokemon } from '../../../clients/pokemon';
+import { pokemonSchema } from '../../../schemas';
 
 type FastifyRequestParams = FastifyRequest<{ Params: { id: number } }>;
 
@@ -12,7 +13,7 @@ export default function (
     '/suggest',
     {
       schema: {
-        description: 'Get a weak pokemon based on the id',
+        description: 'Get weak pokemon based on the id',
         params: {
           type: 'object',
           properties: {
@@ -20,6 +21,9 @@ export default function (
               type: 'number'
             }
           }
+        },
+        response: {
+          200: { type: 'array', items: pokemonSchema }
         }
       }
     },

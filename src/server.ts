@@ -30,8 +30,8 @@ export async function start({
     });
 
     fastify.setErrorHandler((error: FastifyError, request, reply) => {
-      console.error(error);
       if (error.validation) {
+        console.debug(error);
         reply.status(400).send({
           status: 400,
           message: 'Validation error',
@@ -40,6 +40,8 @@ export async function start({
         });
         return;
       }
+      // TODO: Add more errors
+      console.error(error);
       reply.status(500).send({ message: 'Internal server error' });
     });
 

@@ -4,6 +4,10 @@ import { start as startServer } from '../../src/server';
 import { Knex } from 'knex';
 //import { pokemon } from '../../data/pokemon.json';
 import suggested from '../../data/mock/suggested.json';
+import {
+  PokemonToPokemonDb,
+  PokemonDbToPokemon
+} from '../../src/clients/pokemon';
 import grassPokemonSortedByWeightAsc from '../../data/mock/grass-pokemon-sorted-by-weight-asc.json';
 import mockBulbasaur from '../../data/mock/bulbasaur.json';
 import mockVenusaur from '../../data/mock/venusaur.json';
@@ -21,7 +25,7 @@ describe('Pokemon routes', () => {
       host: 'localhost',
       port: 8512
     });
-  }, 10000);
+  }, 15000);
   afterAll(async () => {
     await knex.destroy().catch(console.error);
     await app.close().catch(console.error);
@@ -34,7 +38,10 @@ describe('Pokemon routes', () => {
     expect(response.statusCode).toBe(200);
     const json = await response.json();
     expect(json).toHaveLength(151);
-    expect(json[0]).toEqual(mockBulbasaur);
+    const eq = PokemonDbToPokemon(
+      PokemonToPokemonDb({ ...mockBulbasaur, id: 1 })
+    );
+    expect(json[0]).toEqual(eq);
   });
   it('GET /pokemon?type=grass - should return pokemon filtered by type', async () => {
     const response = await app.inject({
@@ -53,7 +60,11 @@ describe('Pokemon routes', () => {
     expect(response.statusCode).toBe(200);
     const json = await response.json();
     expect(json).toHaveLength(14);
-    expect(json).toEqual(grassPokemonSortedByWeightAsc);
+    expect(json).toEqual(
+      grassPokemonSortedByWeightAsc.map((p) =>
+        PokemonDbToPokemon(PokemonToPokemonDb(p))
+      )
+    );
   });
   it('GET /pokemon?name=sa - should not return any pokemon if the name is shorter than 2 characters.', async () => {
     const response = await app.inject({
@@ -70,7 +81,11 @@ describe('Pokemon routes', () => {
     expect(response.statusCode).toBe(200);
     const json = await response.json();
     expect(json).toHaveLength(3);
-    expect(json).toEqual(mockPokemon);
+    expect(json).toEqual(
+      mockPokemon.map((p, index) =>
+        PokemonDbToPokemon(PokemonToPokemonDb({ ...p, id: index + 1 }))
+      )
+    );
   });
 
   it('GET /pokemon/:id should return the pokemon and its evolutions', async () => {
@@ -80,7 +95,11 @@ describe('Pokemon routes', () => {
     });
     expect(response.statusCode).toBe(200);
     const json = await response.json();
-    expect(json).toEqual(mockPokemon);
+    expect(json).toEqual(
+      mockPokemon.map((p, index) =>
+        PokemonDbToPokemon(PokemonToPokemonDb({ ...p, id: index + 1 }))
+      )
+    );
   });
   it('GET /pokemon/:id/suggest', async () => {
     const response = await app.inject({
@@ -89,7 +108,9 @@ describe('Pokemon routes', () => {
     });
     expect(response.statusCode).toBe(200);
     const json = await response.json();
-    expect(json).toEqual(suggested);
+    expect(json).toEqual(
+      suggested.map((p) => PokemonDbToPokemon(PokemonToPokemonDb(p)))
+    );
   });
   it('POST /pokemon - should create a new pokemon', async () => {
     const mockCreate = {

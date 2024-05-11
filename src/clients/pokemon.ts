@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import { instance } from '../db';
 
 export interface Pokemon {
-  id: number;
+  id?: number;
   pokedexNumber: string;
   name: string;
   img: string;
@@ -34,15 +34,15 @@ export const PokemonDbToPokemon = (p: PokemonDb): Pokemon => ({
   height: `${p.height} m`,
   weight: `${p.weight} kg`,
   candy: p.candy,
-  candyCount: p.candy_count,
+  candyCount: p.candy_count ?? 0,
   egg: p.egg ? `${p.egg} km` : 'Not in Eggs',
   spawnChance: p.spawn_chance,
   avgSpawns: p.avg_spawns,
   spawnTime: p.spawn_time,
-  weaknesses: JSON.parse(p.weaknesses),
-  prevEvolution: JSON.parse(p.prev_evolution),
-  nextEvolution: JSON.parse(p.next_evolution),
-  multipliers: JSON.parse(p.multipliers)
+  weaknesses: JSON.parse(p.weaknesses) ?? [],
+  prevEvolution: JSON.parse(p.prev_evolution) ?? [],
+  nextEvolution: JSON.parse(p.next_evolution) ?? [],
+  multipliers: JSON.parse(p.multipliers) ?? []
 });
 
 export const PokemonToPokemonDb = (pokemon: Pokemon): PokemonDb => ({
@@ -124,7 +124,7 @@ export async function getPokemons(
           if (type === filter.type[0]) {
             query.where('type', 'like', `%${type}%`);
           } else {
-            query.orWhere('type', 'like', `%${type}%`);
+            query.andWhere('type', 'like', `%${type}%`);
           }
         }
       } else {
@@ -170,12 +170,14 @@ export async function getWeakPokemon(id: number): Promise<Pokemon[]> {
     await knex.select('*').from('pokemon').where('id', id).first()
   );
   const params: string[] = [];
+  // Generate query for the weaknesses of the selected pokemon
   const notTypes = stored.weaknesses
     .map((weakness) => {
       params.push(`%${weakness}%`);
       return `type NOT LIKE ?`;
     })
     .join(' AND ');
+  // Generate query for the selecting the pokemon that are weak against the selected pokemons type
   const weaknesses = stored.type
     .map((type) => {
       params.push(`%${type}%`);
@@ -262,6 +264,7 @@ export async function addPokemonEvolutions(
     update['next_evolution'] =
       update['next_evolution'].concat(newNextEvolution);
   }
+
   await knex('pokemon')
     .where('num', pokedexNumber)
     .update({
@@ -281,7 +284,9 @@ export async function addPokemonEvolutions(
  * @param pokemon Pokemon to create
  * @returns Pokemon
  */
-export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
+export async function createPokemon(
+  pokemon: Omit<Pokemon, 'id'>
+): Promise<Pokemon> {
   const knex = await (instance() as Knex);
   const prevEvolution = pokemon.prevEvolution;
   const nextEvolution = pokemon.nextEvolution;
@@ -331,7 +336,7 @@ export async function createPokemon(pokemon: Pokemon): Promise<Pokemon> {
           }
         });
       }
-      await addPokemonEvolutions(nEvolution.num, [], [evolution]);
+      await addPokemonEvolutions(nEvolution.num, [evolution], []);
     }
   }
   return { ...pokemon, id };

@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 import { getPokemons } from '../../clients/pokemon';
+import { pokemonSchema } from '../../schemas';
 
 type FastifyRequestGet = FastifyRequest<{
   Querystring: {
@@ -30,6 +31,9 @@ export default function (
               enum: ['asc', 'desc']
             }
           }
+        },
+        response: {
+          200: { type: 'array', items: pokemonSchema }
         }
       }
     },

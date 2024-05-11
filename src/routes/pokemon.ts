@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 import { createPokemon, getPokemons, type Pokemon } from '../clients/pokemon';
-import convert from 'ts-interface-to-json-schema';
-import path from 'path';
+import { pokemonSchema, pokemonWithoutIdSchema } from '../schemas';
+
 type FastifyRequestGet = FastifyRequest<{
   Querystring: {
     name: Array<string>;
@@ -14,23 +14,6 @@ type FastifyRequestGet = FastifyRequest<{
 type FastifyRequestPost = FastifyRequest<{
   Body: Pokemon;
 }>;
-
-/**
- * This function converts the Pokemon interface to a AJV schema using the ts-interface-to-json-schema package
- *
- * @returns the Pokemon Type in AJV schema format
- */
-function getPokemonSchema() {
-  const schema = convert(
-    'Pokemon', // Interface name
-    path.resolve(__dirname, '../clients/pokemon.ts') // Path to interface location
-  );
-  // Remove id from the schema
-  delete schema.properties.id;
-  // Clean up the required array(id will be at the start)
-  schema.required.shift();
-  return schema;
-}
 
 export default function (
   f: FastifyInstance,
@@ -70,6 +53,9 @@ export default function (
               enum: ['asc', 'desc']
             }
           }
+        },
+        response: {
+          200: { type: 'array', items: pokemonSchema }
         }
       }
     },
@@ -94,7 +80,10 @@ export default function (
     '/pokemon',
     {
       schema: {
-        body: getPokemonSchema()
+        body: pokemonWithoutIdSchema,
+        response: {
+          200: pokemonSchema
+        }
       }
     },
     async (request: FastifyRequestPost) => {
